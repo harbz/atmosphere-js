@@ -1,0 +1,37 @@
+{
+  "name": "atmospherejs",
+  "version": "1.0.0",
+  "description": "Cinematic texture web components — film grain, vignette, light leaks, scanlines, and paper textures. Zero dependencies.",
+  "main": "src/atmospherejs.js",
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "dev": "npx -y serve .",
+    "demo": "npx -y serve ."
+  },
+  "keywords": [
+    "web-components",
+    "film-grain",
+    "vignette",
+    "texture",
+    "cinematic",
+    "light-leak",
+    "scanlines",
+    "paper-texture",
+    "canvas",
+    "overlay",
+    "atmosphere",
+    "visual-effects"
+  ],
+  "author": "Yomi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yomi/atmospherejs"
+  },
+  "homepage": "https://github.com/yomi/atmospherejs#readme",
+  "bugs": {
+    "url": "https://github.com/yomi/atmospherejs/issues"
+  }
+}

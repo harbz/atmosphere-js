@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atmosphère — Cinematic Texture Web Components</title>
+  <meta name="description" content="Zero-dependency web components for cinematic visual textures. Film grain, vignette, light leaks, scanlines, and paper textures via simple HTML tags.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Atmosphère Library -->
+  <script src="../src/atmospherejs.js"></script>
+
+  <style>
+    /* ─── Reset & Base ───────────────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      /* Warm Editorial Light Mode Palette */
+      --bg: #F5F0E8;
+      --bg-surface: #FFFFFF;
+      --bg-card: #FAFAF8;
+      --bg-card-hover: #FFFFFF;
+      --border: rgba(10, 10, 12, 0.08);
+      --border-hover: rgba(10, 10, 12, 0.15);
+      --text-primary: #0A0A0C;
+      --text-secondary: #5C5A56;
+      --text-muted: #8A8680;
+      
+      /* Vermillion Accent */
+      --accent: #D35236;
+      --accent-glow: rgba(211, 82, 54, 0.1);
+      --accent-text: #D35236;
+      --code-bg: #EAE5DD;
+      
+      /* Studio Typography System */
+      --font-display: 'Instrument Serif', serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --radius: 16px;
+      --radius-sm: 10px;
+      
+      /* Dribbble-level Easing Curves */
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --duration-base: 220ms;
+      --duration-fast: 150ms;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+    }
+
+    /* ─── Typography ─────────────────────────────────────────────────── */
+    h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 400; line-height: 1.1; font-style: italic; }
+    h1 { font-size: clamp(4rem, 10vw, 7rem); letter-spacing: -0.02em; }
+    h2 { font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: -0.01em; }
+    h3 { font-family: var(--font-body); font-size: 1.25rem; font-weight: 600; font-style: normal; }
+    p { font-family: var(--font-body); color: var(--text-secondary); line-height: 1.6; }
+    code, .mono { font-family: var(--font-mono); font-size: 0.85em; }
+
+    /* ─── Layout ─────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 4vw, 48px);
+    }
+
+    section {
+      padding: clamp(60px, 10vw, 120px) 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ─── Animations ─────────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    .animate-up {
+      animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .delay-1 { animation-delay: 100ms; }
+    .delay-2 { animation-delay: 200ms; }
+    .delay-3 { animation-delay: 300ms; }
+    .delay-4 { animation-delay: 400ms; }
+
+    /* ─── Nav ────────────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 20px 0;
+      background: rgba(253, 251, 247, 0.85);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(10, 10, 12, 0.04);
+      transition: padding var(--duration-medium) var(--ease-out-expo);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Adaptive Fluid Logo */
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-mark {
+      position: relative;
+      width: 28px;
+      height: 28px;
+    }
+
+    .logo-mark::before,
+    .logo-mark::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      mix-blend-mode: multiply;
+      transition: transform var(--duration-medium) var(--ease-spring);
+    }
+
+    .logo-mark::before {
+      top: 0; left: 0;
+      width: 20px; height: 20px;
+      background: var(--accent);
+      opacity: 0.9;
+    }
+
+    .logo-mark::after {
+      bottom: 0; right: 0;
+      width: 20px; height: 20px;
+      background: #E8A87C;
+      opacity: 0.9;
+    }
+
+    .nav-logo:hover .logo-mark::before { transform: translate(4px, 4px); }
+    .nav-logo:hover .logo-mark::after { transform: translate(-4px, -4px); }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      list-style: none;
+      position: relative;
+    }
+
+    .nav-pill {
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      width: 0;
+      background: var(--text-primary);
+      border-radius: 20px;
+      z-index: 0;
+      transition: all 400ms var(--ease-spring);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .nav-item {
+      position: relative;
+      z-index: 1;
+    }
+
+    .nav-links a {
+      display: block;
+      padding: 8px 16px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color var(--duration-fast) var(--ease-out-expo);
+      border-radius: 20px;
+    }
+
+    .nav-links.has-active .nav-pill { opacity: 1; }
+    .nav-links.has-active a.active { color: var(--bg-surface); }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-links.has-active a:hover:not(.active) { color: var(--text-primary); background: transparent; }
+
+    /* ─── Hero ────────────────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding-top: 80px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .hero-grain-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    .hero-gradient {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 80% -20%, rgba(211, 82, 54, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at -20% 120%, rgba(232, 168, 124, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      text-align: center;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(211, 82, 54, 0.06);
+      border: 1px solid rgba(211, 82, 54, 0.15);
+      border-radius: 100px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-bottom: 40px;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: subtlePulse 2s ease-in-out infinite;
+    }
+
+    .hero h1 {
+      margin-bottom: 32px;
+    }
+
+    .hero h1 .accent-word {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-description {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ─── Buttons (6-State System) ────────────────────────────────────── */
+    .btn {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 100px; /* Pill shape for editorial feel */
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      /* Explicit transitions, never 'all' */
+      transition:
+        transform var(--duration-fast) var(--ease-spring),
+        box-shadow var(--duration-base) var(--ease-out-expo),
+        background var(--duration-base) var(--ease-out-expo),
+        color var(--duration-base) var(--ease-out-expo),
+        border-color var(--duration-base) var(--ease-out-expo);
+      will-change: transform;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .btn:active {
+      transform: translateY(0) scale(0.97);
+      transition-duration: var(--duration-instant); /* Snap on press */
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .btn-primary {
+      background: var(--text-primary);
+      color: var(--bg-surface);
+      box-shadow: 0 4px 12px rgba(10, 10, 12, 0.15);
+    }
+
+    .btn-primary:hover {
+      background: #000;
+      box-shadow: 0 8px 24px rgba(10, 10, 12, 0.25), 0 2px 8px rgba(10, 10, 12, 0.1);
+    }
+
+    .btn-primary .btn-icon { color: var(--accent); font-family: var(--font-mono); font-weight: 500;}
+
+    .btn-secondary {
+      background: rgba(10,10,12,0.02);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(10,10,12,0.06);
+      border-color: var(--border-hover);
+    }
+
+    /* Ripple Effect */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(0);
+      pointer-events: none;
+      animation: rippleAnim 500ms var(--ease-out-expo) forwards;
+    }
+    .btn-secondary .ripple { background: rgba(10, 10, 12, 0.08); }
+
+    @keyframes rippleAnim {
+      to { transform: scale(1); opacity: 0; }
+    }
+
+    .btn-copy-feedback {
+      color: #4ade80 !important;
+    }
+
+    /* ─── Section Headers ────────────────────────────────────────────── */
+    .section-header {
+      margin-bottom: 48px;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--accent-text);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      padding: 4px 10px;
+      background: var(--accent-glow);
+      border-radius: 4px;
+    }
+
+    .section-description {
+      max-width: 560px;
+      font-size: 1.05rem;
+    }
+
+    /* ─── Component Showcase (3D Cards) ──────────────────────────────── */
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 860px) {
+      .showcase-grid { grid-template-columns: 1fr; }
+    }
+
+    .showcase-demo {
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--bg-surface);
+      box-shadow: 0 4px 12px rgba(10, 10, 12, 0.05);
+      /* 3D setup */
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition:
+        transform var(--duration-base) var(--ease-spring),
+        box-shadow var(--duration-base) var(--ease-out-expo);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .showcase-demo > * {
+      flex: 1;
+      display: block;
+      width: 100%;
+    }
+
+    .showcase-demo:hover {
+      box-shadow:
+        0 8px 24px rgba(10, 10, 12, 0.08),
+        0 24px 48px rgba(10, 10, 12, 0.06);
+    }
+
+    .showcase-demo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 400px;
+      object-fit: cover;
+      transform: translateZ(0); /* Force hardware accel */
+    }
+
+    .showcase-controls {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 28px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-group:last-child { margin-bottom: 0; }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .control-label span {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .control-label .control-value {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-text);
+    }
+
+    /* ─── Range Slider (Spring Bounce) ───────────────────────────────── */
+    .control-group { margin-bottom: 24px; }
+    .control-group:last-child { margin-bottom: 0; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(10, 10, 12, 0.06);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      transition: background var(--duration-base) var(--ease-out-expo);
+    }
+    input[type="range"]:hover { background: rgba(10, 10, 12, 0.1); }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 2px solid var(--accent);
+      box-shadow: 0 2px 8px rgba(211, 82, 54, 0.2);
+      cursor: grab;
+      transition: transform var(--duration-fast) var(--ease-spring);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:active {
+      cursor: grabbing;
+      transform: scale(0.9);
+    }
+
+    /* ─── Select ─────────────────────────────────────────────────────── */
+    .select-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .select-btn {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .select-btn:hover { border-color: var(--border-hover); color: var(--text-secondary); }
+    .select-btn.active {
+      background: var(--accent-glow);
+      border-color: rgba(200, 164, 110, 0.3);
+      color: var(--accent-text);
+    }
+
+    /* ─── Code Block ─────────────────────────────────────────────────── */
+    .code-block {
+      position: relative;
+      margin-top: 20px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .code-lang {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    /* Checkmark Draw Animation for Copy Buttons */
+    .code-copy-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+      height: 28px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all var(--duration-fast) var(--ease-out-expo);
+      overflow: hidden;
+    }
+
+    .code-copy-btn:hover { color: var(--text-primary); background: rgba(10,10,12,0.05); }
+    .code-copy-btn:active { transform: scale(0.95); }
+
+    .btn-text, .btn-icon-svg {
+      transition: transform var(--duration-fast) var(--ease-spring), opacity var(--duration-fast) var(--ease-out-expo);
+    }
+
+    .btn-icon-svg {
+      position: absolute;
+      width: 16px; height: 16px;
+      opacity: 0;
+      transform: scale(0);
+    }
+
+    .code-copy-btn.copied .btn-text {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+
+    .code-copy-btn.copied .btn-icon-svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .code-copy-btn.copied .btn-icon-svg path {
+      stroke-dasharray: 24;
+      stroke-dashoffset: 24;
+      animation: drawCheck 400ms var(--ease-out-expo) forwards;
+    }
+
+    @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+
+    .code-body {
+      padding: 16px 20px;
+      overflow-x: auto;
+    }
+
+    .code-body pre {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      white-space: pre;
+    }
+
+    .code-body .tag { color: #e06c75; }
+    .code-body .attr { color: #d19a66; }
+    .code-body .val { color: #98c379; }
+    .code-body .comment { color: var(--text-muted); font-style: italic; }
+
+    /* ─── Toggle Switch (Liquid Morphing) ────────────────────────────── */
+    .toggle {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      flex-shrink: 0;
+      display: inline-block;
+    }
+
+    .toggle input {
+      opacity: 0; width: 0; height: 0; position: absolute;
+    }
+
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: rgba(10, 10, 12, 0.08);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background var(--duration-base) var(--ease-out-expo);
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 22px; height: 22px;
+      background: #FFFFFF;
+      border-radius: 11px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.02);
+      /* The liquid stretch effect */
+      transition:
+        transform var(--duration-medium) var(--ease-spring),
+        width var(--duration-fast) var(--ease-out-expo),
+        border-radius var(--duration-fast) var(--ease-out-expo);
+    }
+
+    /* Stretch on press */
+    .toggle-track:active::after {
+      width: 28px;
+      border-radius: 11px;
+    }
+
+    .toggle input:checked + .toggle-track {
+      background: var(--accent);
+    }
+
+    .toggle input:checked + .toggle-track::after {
+      transform: translateX(24px);
+    }
+
+    /* Stretch in opposite direction when turning off */
+    .toggle input:checked + .toggle-track:active::after {
+      width: 28px;
+      transform: translateX(18px);
+    }
+
+    .toggle:focus-within .toggle-track {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* ─── Combine Section (Bento Grid) ───────────────────────────────── */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 900px) {
+      .bento-grid { grid-template-columns: 1fr; }
+    }
+
+    .combine-demo {
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--bg-surface);
+      box-shadow: 0 8px 32px rgba(10, 10, 12, 0.06);
+      position: relative;
+      display: flex;
+    }
+
+    .combine-demo > * {
+      flex: 1;
+      display: block;
+      width: 100%;
+    }
+
+    .combine-demo img {
+      display: block;
+      width: 100%;
+      height: 540px;
+      object-fit: cover;
+    }
+
+    /* Liquid Glass Panel */
+    .combine-controls-panel {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(24px) saturate(200%);
+      -webkit-backdrop-filter: blur(24px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: var(--radius);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 24px rgba(10, 10, 12, 0.04), inset 0 0 0 1px rgba(255,255,255,0.4);
+    }
+
+    .combine-panel-header {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    .combine-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: box-shadow var(--duration-base) var(--ease-out-expo);
+    }
+
+    .combine-toggle:hover {
+      box-shadow: 0 4px 12px rgba(10, 10, 12, 0.04);
+    }
+
+    .combine-toggle-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .combine-toggle-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .combine-toggle-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────────────── */
+    footer {
+      padding: 32px 0;
+      text-align: center;
+    }
+
+    footer p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    footer a:hover { color: var(--accent-text); }
+
+    /* ─── Scrollbar ──────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--bg-card); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--bg-card-hover); }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Nav ──────────────────────────────────────────────────────── -->
+  <nav>
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo">
+        <div class="logo-mark"></div>
+        atmosphère
+      </a>
+      <ul class="nav-links" id="main-nav">
+        <div class="nav-pill" id="nav-pill"></div>
+        <li class="nav-item"><a href="#components">Components</a></li>
+        <li class="nav-item"><a href="#combine">Combine</a></li>
+        <li class="nav-item"><a href="https://github.com" target="_blank">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ─────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <atm-grain class="hero-grain-bg" intensity="0.08" speed="medium" color="warm" animated="true" blend="multiply">
+      <div style="width:100%;height:100vh;"></div>
+    </atm-grain>
+    <div class="hero-gradient"></div>
+    <div class="container hero-content">
+      <div class="hero-badge animate-up">Web Components Library v1.0</div>
+      <h1 class="animate-up delay-1">
+        Cinematic <span class="accent-word">texture</span><br>
+        for the web
+      </h1>
+      <p class="hero-description animate-up delay-2">
+        Drop-in web components that add film grain, vignette, light leaks,
+        and more to any element. Zero dependencies. One script tag.
+      </p>
+      <div class="hero-actions animate-up delay-3">
+        <button class="btn btn-primary" id="install-btn">
+          <span class="btn-icon">$</span>
+          <span class="btn-text" id="install-text">npm install atmospherejs</span>
+        </button>
+        <a href="https://github.com" target="_blank" class="btn btn-secondary">
+          View on GitHub →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Component 1: Grain ──────────────────────────────────────── -->
+  <section id="components">
+    <div class="container">
+      <div class="section-header animate-up">
+        <div class="section-label">01 — Grain</div>
+        <h2>Animated Film Grain</h2>
+        <p class="section-description">
+          Organic Perlin noise that moves like real 35mm film. Apply it to images,
+          hero sections, or entire page backgrounds for instant analog warmth.
+        </p>
+      </div>
+
+      <div class="showcase-grid">
+        <div class="showcase-demo">
+          <atm-grain id="grain-demo" intensity="0.3" speed="medium" color="neutral" animated="true" blend="overlay">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80" alt="Mountain landscape with grain overlay" />
+          </atm-grain>
+        </div>
+
+        <div class="showcase-controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span>Intensity</span>
+              <span class="control-value" id="grain-intensity-val">0.3</span>
+            </div>
+            <input type="range" min="0" max="100" value="30" id="grain-intensity" oninput="updateGrain()">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><span>Speed</span></div>
+            <div class="select-group" id="grain-speed-group">
+              <button class="select-btn" data-val="slow" onclick="setGrainSpeed('slow')">Slow</button>
+              <button class="select-btn active" data-val="medium" onclick="setGrainSpeed('medium')">Medium</button>
+              <button class="select-btn" data-val="fast" onclick="setGrainSpeed('fast')">Fast</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><span>Color</span></div>
+            <div class="select-group" id="grain-color-group">
+              <button class="select-btn" data-val="warm" onclick="setGrainColor('warm')">Warm</button>
+              <button class="select-btn active" data-val="neutral" onclick="setGrainColor('neutral')">Neutral</button>
+              <button class="select-btn" data-val="cool" onclick="setGrainColor('cool')">Cool</button>
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">HTML</span>
+              <button class="code-copy-btn" onclick="copyCode(this, 'grain-code')">Copy</button>
+            </div>
+            <div class="code-body">
+              <pre id="grain-code"><span class="tag">&lt;atm-grain</span> <span class="attr">intensity</span>=<span class="val">"0.3"</span> <span class="attr">speed</span>=<span class="val">"medium"</span>
+  <span class="attr">color</span>=<span class="val">"neutral"</span> <span class="attr">animated</span>=<span class="val">"true"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"photo.jpg"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/atm-grain&gt;</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Component 2: Vignette ───────────────────────────────────── -->
+  <section>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">02 — Vignette</div>
+        <h2>Edge Vignette</h2>
+        <p class="section-description">
+          The classic darkened-edge effect that draws the eye to the center.
+          Adjust strength, color, and shape to match your scene.
+        </p>
+      </div>
+
+      <div class="showcase-grid">
+        <div class="showcase-demo">
+          <atm-vignette id="vignette-demo" strength="0.5" color="#000000" shape="oval">
+            <img src="https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?w=800&q=80" alt="Portrait with vignette effect" />
+          </atm-vignette>
+        </div>
+
+        <div class="showcase-controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span>Strength</span>
+              <span class="control-value" id="vignette-strength-val">0.5</span>
+            </div>
+            <input type="range" min="0" max="100" value="50" id="vignette-strength" oninput="updateVignette()">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><span>Shape</span></div>
+            <div class="select-group" id="vignette-shape-group">
+              <button class="select-btn active" data-val="oval" onclick="setVignetteShape('oval')">Oval</button>
+              <button class="select-btn" data-val="square" onclick="setVignetteShape('square')">Square</button>
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">HTML</span>
+              <button class="code-copy-btn" onclick="copyCode(this, 'vignette-code')">Copy</button>
+            </div>
+            <div class="code-body">
+              <pre id="vignette-code"><span class="tag">&lt;atm-vignette</span> <span class="attr">strength</span>=<span class="val">"0.5"</span>
+  <span class="attr">color</span>=<span class="val">"#000000"</span> <span class="attr">shape</span>=<span class="val">"oval"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"photo.jpg"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/atm-vignette&gt;</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Component 3: Scanlines ──────────────────────────────────── -->
+  <section>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">03 — Scanlines</div>
+        <h2>CRT Scanlines</h2>
+        <p class="section-description">
+          Subtle horizontal scan lines for a retro, analog display aesthetic.
+          Lightweight CSS-only — zero performance impact.
+        </p>
+      </div>
+
+      <div class="showcase-grid">
+        <div class="showcase-demo">
+          <atm-scanlines id="scanlines-demo" opacity="0.12" spacing="3" color="#000000">
+            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80" alt="Retro scene with scanlines" />
+          </atm-scanlines>
+        </div>
+
+        <div class="showcase-controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span>Opacity</span>
+              <span class="control-value" id="scanlines-opacity-val">0.12</span>
+            </div>
+            <input type="range" min="0" max="100" value="12" id="scanlines-opacity" oninput="updateScanlines()">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">
+              <span>Spacing</span>
+              <span class="control-value" id="scanlines-spacing-val">3px</span>
+            </div>
+            <input type="range" min="2" max="8" value="3" id="scanlines-spacing" oninput="updateScanlines()">
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">HTML</span>
+              <button class="code-copy-btn" onclick="copyCode(this, 'scanlines-code')">Copy</button>
+            </div>
+            <div class="code-body">
+              <pre id="scanlines-code"><span class="tag">&lt;atm-scanlines</span> <span class="attr">opacity</span>=<span class="val">"0.12"</span>
+  <span class="attr">spacing</span>=<span class="val">"3"</span> <span class="attr">color</span>=<span class="val">"#000000"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div&gt;</span>Any content<span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/atm-scanlines&gt;</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Component 4: Light Leak ─────────────────────────────────── -->
+  <section>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">04 — Light Leak</div>
+        <h2>Film Light Leaks</h2>
+        <p class="section-description">
+          Warm light bleed at the corners — the signature look of exposed
+          analog film. Supports breathing animation for a living feel.
+        </p>
+      </div>
+
+      <div class="showcase-grid">
+        <div class="showcase-demo">
+          <atm-light-leak id="lightleak-demo" position="top-right" color="warm" opacity="0.4" animated="true">
+            <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80" alt="Landscape with warm light leak" />
+          </atm-light-leak>
+        </div>
+
+        <div class="showcase-controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span>Opacity</span>
+              <span class="control-value" id="lightleak-opacity-val">0.4</span>
+            </div>
+            <input type="range" min="0" max="100" value="40" id="lightleak-opacity" oninput="updateLightLeak()">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><span>Position</span></div>
+            <div class="select-group" id="lightleak-pos-group">
+              <button class="select-btn" data-val="top-left" onclick="setLightLeakPos('top-left')">↖</button>
+              <button class="select-btn active" data-val="top-right" onclick="setLightLeakPos('top-right')">↗</button>
+              <button class="select-btn" data-val="bottom-left" onclick="setLightLeakPos('bottom-left')">↙</button>
+              <button class="select-btn" data-val="bottom-right" onclick="setLightLeakPos('bottom-right')">↘</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><span>Color</span></div>
+            <div class="select-group" id="lightleak-color-group">
+              <button class="select-btn active" data-val="warm" onclick="setLightLeakColor('warm')">Warm</button>
+              <button class="select-btn" data-val="cool" onclick="setLightLeakColor('cool')">Cool</button>
+              <button class="select-btn" data-val="golden" onclick="setLightLeakColor('golden')">Golden</button>
+              <button class="select-btn" data-val="pink" onclick="setLightLeakColor('pink')">Pink</button>
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">HTML</span>
+              <button class="code-copy-btn" onclick="copyCode(this, 'lightleak-code')">Copy</button>
+            </div>
+            <div class="code-body">
+              <pre id="lightleak-code"><span class="tag">&lt;atm-light-leak</span> <span class="attr">position</span>=<span class="val">"top-right"</span>
+  <span class="attr">color</span>=<span class="val">"warm"</span> <span class="attr">opacity</span>=<span class="val">"0.4"</span>
+  <span class="attr">animated</span>=<span class="val">"true"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"photo.jpg"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/atm-light-leak&gt;</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Component 5: Paper ──────────────────────────────────────── -->
+  <section>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">05 — Paper</div>
+        <h2>Paper Texture</h2>
+        <p class="section-description">
+          Scalable parchment and paper textures using SVG turbulence filters.
+          Adds a physical, tactile feel to flat digital surfaces.
+        </p>
+      </div>
+
+      <div class="showcase-grid">
+        <div class="showcase-demo">
+          <atm-paper id="paper-demo" texture="medium" opacity="0.12" tint="#f5f0e8">
+            <div style="height: 360px; display: flex; align-items: center; justify-content: center; background: var(--bg-surface); padding: 48px;">
+              <div style="text-align: center;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 12px;">A surface that feels real</h3>
+                <p style="max-width: 380px; font-size: 0.95rem;">Like holding aged paper in your hands. Physical. Warm. Grounded in the material world.</p>
+              </div>
+            </div>
+          </atm-paper>
+        </div>
+
+        <div class="showcase-controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span>Opacity</span>
+              <span class="control-value" id="paper-opacity-val">0.12</span>
+            </div>
+            <input type="range" min="0" max="30" value="12" id="paper-opacity" oninput="updatePaper()">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><span>Texture</span></div>
+            <div class="select-group" id="paper-texture-group">
+              <button class="select-btn" data-val="fine" onclick="setPaperTexture('fine')">Fine</button>
+              <button class="select-btn active" data-val="medium" onclick="setPaperTexture('medium')">Medium</button>
+              <button class="select-btn" data-val="rough" onclick="setPaperTexture('rough')">Rough</button>
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-lang">HTML</span>
+              <button class="code-copy-btn" onclick="copyCode(this, 'paper-code')">Copy</button>
+            </div>
+            <div class="code-body">
+              <pre id="paper-code"><span class="tag">&lt;atm-paper</span> <span class="attr">texture</span>=<span class="val">"medium"</span>
+  <span class="attr">opacity</span>=<span class="val">"0.12"</span> <span class="attr">tint</span>=<span class="val">"#f5f0e8"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div&gt;</span>Content here<span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/atm-paper&gt;</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Combine Effects ────────────────────────────────────────── -->
+  <section id="combine">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">Playground</div>
+        <h2>Combine Effects</h2>
+        <p class="section-description">
+          Stack multiple atmosphere effects on a single image.
+          Toggle each layer to build your perfect cinematic look.
+        </p>
+      </div>
+
+      <div class="bento-grid">
+        <div class="combine-demo" id="combine-demo-wrap">
+          <!-- Layers are nested: outermost → innermost -->
+          <div id="combine-visual">
+            <img src="https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=1200&q=80" alt="Combined atmospheric effects" id="combine-img" style="display:block;width:100%;height:540px;object-fit:cover;">
+          </div>
+        </div>
+
+        <div class="combine-controls-panel">
+          <div class="combine-panel-header">Active Layers</div>
+          
+          <div class="combine-toggle">
+            <div class="combine-toggle-info">
+              <div class="combine-toggle-label">Film Grain</div>
+              <div class="combine-toggle-tag">&lt;atm-grain&gt;</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked id="combine-grain" onchange="rebuildCombine()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="combine-toggle">
+            <div class="combine-toggle-info">
+              <div class="combine-toggle-label">Vignette</div>
+              <div class="combine-toggle-tag">&lt;atm-vignette&gt;</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked id="combine-vignette" onchange="rebuildCombine()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="combine-toggle">
+            <div class="combine-toggle-info">
+              <div class="combine-toggle-label">Light Leak</div>
+              <div class="combine-toggle-tag">&lt;atm-light-leak&gt;</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" checked id="combine-lightleak" onchange="rebuildCombine()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="combine-toggle">
+            <div class="combine-toggle-info">
+              <div class="combine-toggle-label">Scanlines</div>
+              <div class="combine-toggle-tag">&lt;atm-scanlines&gt;</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="combine-scanlines" onchange="rebuildCombine()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="combine-toggle">
+            <div class="combine-toggle-info">
+              <div class="combine-toggle-label">Paper Base</div>
+              <div class="combine-toggle-tag">&lt;atm-paper&gt;</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="combine-paper" onchange="rebuildCombine()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Footer ─────────────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <p>
+        <a href="https://github.com" target="_blank">GitHub</a> · 
+        <a href="https://npmjs.com" target="_blank">npm</a> · 
+        Made by Yomi
+      </p>
+    </div>
+  </footer>
+
+  <!-- ─── Scripts ────────────────────────────────────────────────── -->
+  <script>
+    // ── Copy install command ────────────────────────────────────────
+    function copyInstall() {
+      navigator.clipboard.writeText('npm install atmospherejs').then(() => {
+        const txt = document.getElementById('install-text');
+        const original = txt.textContent;
+        txt.textContent = 'Copied!';
+        document.getElementById('install-btn').classList.add('btn-copy-feedback');
+        setTimeout(() => {
+          txt.textContent = original;
+          document.getElementById('install-btn').classList.remove('btn-copy-feedback');
+        }, 1500);
+      });
+    }
+
+    // ── Button Ripples ──────────────────────────────────────────────
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('pointerdown', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height) * 2;
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.width = `${size}px`;
+        ripple.style.height = `${size}px`;
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        
+        btn.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+      });
+    });
+
+    // ── 3D Card Tilt ────────────────────────────────────────────────
+    document.querySelectorAll('.showcase-demo').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top  + rect.height / 2;
+        const rx = ((e.clientY - cy) / rect.height) * -8; // subtle max 8deg
+        const ry = ((e.clientX - cx) / rect.width ) *  8;
+
+        card.style.transform = `
+          perspective(1000px)
+          rotateX(${rx}deg)
+          rotateY(${ry}deg)
+          scale(1.02)
+        `;
+        card.style.transition = 'none'; // remove transition while tracking
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+        card.style.transition = 'transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1)';
+      });
+    });
+
+    // ── Copy code snippets (SVG Checkmark) ──────────────────────────
+    function copyCode(btn, codeId) {
+      const el = document.getElementById(codeId);
+      const text = el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        // Ensure SVG is injected if not already
+        if (!btn.querySelector('.btn-icon-svg')) {
+           btn.innerHTML = `<span class="btn-text">Copy</span>
+            <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        }
+        btn.classList.add('copied');
+        
+        setTimeout(() => {
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ── Select button helper ────────────────────────────────────────
+    function setActive(groupId, value) {
+      const group = document.getElementById(groupId);
+      group.querySelectorAll('.select-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.val === value);
+      });
+    }
+
+    // ── Grain controls ──────────────────────────────────────────────
+    function updateGrain() {
+      const el = document.getElementById('grain-demo');
+      const val = document.getElementById('grain-intensity').value / 100;
+      document.getElementById('grain-intensity-val').textContent = val.toFixed(2);
+      el.setAttribute('intensity', val);
+    }
+
+    function setGrainSpeed(speed) {
+      setActive('grain-speed-group', speed);
+      document.getElementById('grain-demo').setAttribute('speed', speed);
+    }
+
+    function setGrainColor(color) {
+      setActive('grain-color-group', color);
+      document.getElementById('grain-demo').setAttribute('color', color);
+    }
+
+    // ── Vignette controls ───────────────────────────────────────────
+    function updateVignette() {
+      const el = document.getElementById('vignette-demo');
+      const val = document.getElementById('vignette-strength').value / 100;
+      document.getElementById('vignette-strength-val').textContent = val.toFixed(2);
+      el.setAttribute('strength', val);
+    }
+
+    function setVignetteShape(shape) {
+      setActive('vignette-shape-group', shape);
+      document.getElementById('vignette-demo').setAttribute('shape', shape);
+    }
+
+    // ── Scanlines controls ──────────────────────────────────────────
+    function updateScanlines() {
+      const el = document.getElementById('scanlines-demo');
+      const opVal = document.getElementById('scanlines-opacity').value / 100;
+      const spVal = document.getElementById('scanlines-spacing').value;
+      document.getElementById('scanlines-opacity-val').textContent = opVal.toFixed(2);
+      document.getElementById('scanlines-spacing-val').textContent = spVal + 'px';
+      el.setAttribute('opacity', opVal);
+      el.setAttribute('spacing', spVal);
+    }
+
+    // ── Light Leak controls ─────────────────────────────────────────
+    function updateLightLeak() {
+      const el = document.getElementById('lightleak-demo');
+      const val = document.getElementById('lightleak-opacity').value / 100;
+      document.getElementById('lightleak-opacity-val').textContent = val.toFixed(2);
+      el.setAttribute('opacity', val);
+    }
+
+    function setLightLeakPos(pos) {
+      setActive('lightleak-pos-group', pos);
+      document.getElementById('lightleak-demo').setAttribute('position', pos);
+    }
+
+    function setLightLeakColor(color) {
+      setActive('lightleak-color-group', color);
+      document.getElementById('lightleak-demo').setAttribute('color', color);
+    }
+
+    // ── Paper controls ──────────────────────────────────────────────
+    function updatePaper() {
+      const el = document.getElementById('paper-demo');
+      const val = document.getElementById('paper-opacity').value / 100;
+      document.getElementById('paper-opacity-val').textContent = val.toFixed(2);
+      el.setAttribute('opacity', val);
+    }
+
+    function setPaperTexture(tex) {
+      setActive('paper-texture-group', tex);
+      document.getElementById('paper-demo').setAttribute('texture', tex);
+    }
+
+    // ── Combine section ─────────────────────────────────────────────
+    function rebuildCombine() {
+      const wrap = document.getElementById('combine-visual');
+      const imgSrc = 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=1200&q=80';
+
+      const grain = document.getElementById('combine-grain').checked;
+      const vignette = document.getElementById('combine-vignette').checked;
+      const lightleak = document.getElementById('combine-lightleak').checked;
+      const scanlines = document.getElementById('combine-scanlines').checked;
+      const paper = document.getElementById('combine-paper').checked;
+
+      // Build nested HTML from inside out
+      let html = `<img src="${imgSrc}" alt="Combined effects" style="display:block;width:100%;height:540px;object-fit:cover;">`;
+
+      if (paper) html = `<atm-paper texture="medium" opacity="0.08" tint="#f5f0e8">${html}</atm-paper>`;
+      if (scanlines) html = `<atm-scanlines opacity="0.08" spacing="3">${html}</atm-scanlines>`;
+      if (lightleak) html = `<atm-light-leak position="top-right" color="warm" opacity="0.35" animated="true">${html}</atm-light-leak>`;
+      if (vignette) html = `<atm-vignette strength="0.5">${html}</atm-vignette>`;
+      if (grain) html = `<atm-grain intensity="0.2" speed="medium" color="warm" animated="true">${html}</atm-grain>`;
+
+      wrap.innerHTML = html;
+    }
+
+    // Initialize combine section
+    rebuildCombine();
+
+    // ── Nav Sliding Pill ────────────────────────────────────────────
+    const nav = document.getElementById('main-nav');
+    const pill = document.getElementById('nav-pill');
+    const links = nav.querySelectorAll('a');
+
+    function updatePill(el) {
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const navRect = nav.getBoundingClientRect();
+      
+      pill.style.width = `${rect.width}px`;
+      pill.style.left = `${rect.left - navRect.left}px`;
+      
+      links.forEach(l => l.classList.remove('active'));
+      el.classList.add('active');
+      nav.classList.add('has-active');
+    }
+
+    links.forEach(link => {
+      link.addEventListener('mouseenter', (e) => updatePill(e.target));
+    });
+
+    nav.addEventListener('mouseleave', () => {
+      nav.classList.remove('has-active');
+      links.forEach(l => l.classList.remove('active'));
+      pill.style.width = '0px';
+    });
+
+    // ── Scroll animation (Intersection Observer) ────────────────────
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animation = 'fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) both';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.section-header, .showcase-grid, .bento-grid').forEach(el => {
+      el.style.opacity = '0';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
