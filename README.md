@@ -2,9 +2,6 @@
 
 > Cinematic texture web components. Zero dependencies. Drop-in ready.
 
-![Atmosphère](https://img.shields.io/npm/v/atmospherejs?color=%23c8a46e&style=flat-square)
-![Size](https://img.shields.io/bundlephobia/minzip/atmospherejs?color=%23c8a46e&style=flat-square)
-![License](https://img.shields.io/npm/l/atmospherejs?color=%23c8a46e&style=flat-square)
 
 Add film grain, vignette, light leaks, scanlines, and paper textures to any HTML element with simple web components. No frameworks. No build tools. One script tag.
 
