@@ -13,17 +13,17 @@ Add film grain, vignette, light leaks, scanlines, and paper textures to any HTML
 ## Install
 
 ```bash
-npm install atmospherejs
+npm install @harbzz/atmospherejs
 ```
 
 Or via CDN:
 
 ```html
 <!-- All components -->
-<script src="https://unpkg.com/atmospherejs/src/atmospherejs.js"></script>
+<script src="https://unpkg.com/@harbzz/atmospherejs/src/atmospherejs.js"></script>
 
 <!-- Individual components -->
-<script src="https://unpkg.com/atmospherejs/src/atm-grain.js"></script>
+<script src="https://unpkg.com/@harbzz/atmospherejs/src/atm-grain.js"></script>
 ```
 
 ---
@@ -111,7 +111,7 @@ Or via CDN:
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://unpkg.com/atmospherejs/src/atmospherejs.js"></script>
+  <script src="https://unpkg.com/@harbzz/atmospherejs/src/atmospherejs.js"></script>
 </head>
 <body>
   <atm-grain intensity="0.3" color="warm" animated="true">
