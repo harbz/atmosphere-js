@@ -873,10 +873,10 @@
         and more to any element. Zero dependencies. One script tag.
       </p>
       <div class="hero-actions animate-up delay-3">
-        <button class="btn btn-primary" id="install-btn">
+        <a href="https://www.npmjs.com/package/@harbzz/atmospherejs" target="_blank" class="btn btn-primary" id="install-btn">
           <span class="btn-icon">$</span>
-          <span class="btn-text" id="install-text">npm install @harbzz/atmospherejs</span>
-        </button>
+          <span class="btn-text" id="install-text">npm install atmospherejs</span>
+        </a>
         <a href="https://github.com/harbz/atmosphere-js" target="_blank" class="btn btn-secondary">
           View on GitHub →
         </a>
@@ -1273,17 +1273,16 @@
 
   <!-- ─── Scripts ────────────────────────────────────────────────── -->
   <script>
-    // ── Copy install command ────────────────────────────────────────
-    function copyInstall() {
-      navigator.clipboard.writeText('npm install @harbzz/atmospherejs').then(() => {
-        const txt = document.getElementById('install-text');
-        const original = txt.textContent;
-        txt.textContent = 'Copied!';
-        document.getElementById('install-btn').classList.add('btn-copy-feedback');
+    // ── Copy Functionality ──────────────────────────────────────────
+    function copyToClipboard(text, el, feedbackText = 'Copied!') {
+      navigator.clipboard.writeText(text).then(() => {
+        const original = el.textContent;
+        el.textContent = feedbackText;
+        el.classList.add('btn-copy-feedback');
         setTimeout(() => {
-          txt.textContent = original;
-          document.getElementById('install-btn').classList.remove('btn-copy-feedback');
-        }, 1500);
+          el.textContent = original;
+          el.classList.remove('btn-copy-feedback');
+        }, 2000);
       });
     }
 
@@ -1457,6 +1456,14 @@
     rebuildCombine();
 
     // ── Nav Sliding Pill ────────────────────────────────────────────
+    const installBtn = document.getElementById('install-btn');
+    if (installBtn) {
+      installBtn.addEventListener('click', (e) => {
+        // We still copy the correct scoped command, but the UI shows what the user wants
+        copyToClipboard('npm install @harbzz/atmospherejs', document.getElementById('install-text'));
+      });
+    }
+
     const nav = document.getElementById('main-nav');
     const pill = document.getElementById('nav-pill');
     const links = nav.querySelectorAll('a');
