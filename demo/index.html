@@ -220,6 +220,81 @@
     .nav-links a:hover { color: var(--text-primary); }
     .nav-links.has-active a:hover:not(.active) { color: var(--text-primary); background: transparent; }
 
+    /* ─── Mobile Menu Toggle ─────────────────────────────────────────── */
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 101;
+      padding: 0;
+    }
+
+    .menu-toggle-icon,
+    .menu-toggle-icon::before,
+    .menu-toggle-icon::after {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--text-primary);
+      transition: transform 0.4s var(--ease-spring), opacity 0.3s ease, background 0.3s;
+    }
+
+    .menu-toggle-icon { position: relative; }
+    .menu-toggle-icon::before { content: ''; position: absolute; top: -6px; left: 0; }
+    .menu-toggle-icon::after { content: ''; position: absolute; top: 6px; left: 0; }
+
+    body.menu-open .menu-toggle-icon { background: transparent; }
+    body.menu-open .menu-toggle-icon::before { transform: translateY(6px) rotate(45deg); background: var(--text-primary); }
+    body.menu-open .menu-toggle-icon::after { transform: translateY(-6px) rotate(-45deg); background: var(--text-primary); }
+
+    @media (max-width: 768px) {
+      .menu-toggle { display: flex; }
+      
+      .nav-logo { position: relative; z-index: 101; }
+      
+      .nav-links {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 100vh;
+        background: rgba(253, 251, 247, 0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 24px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-10px);
+        transition: opacity 0.4s var(--ease-spring), transform 0.4s var(--ease-spring);
+        z-index: 100;
+        margin: 0;
+      }
+
+      body.menu-open .nav-links {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+      
+      .nav-links a {
+        font-size: 1.5rem;
+        padding: 12px 24px;
+        font-family: var(--font-display);
+        font-style: italic;
+      }
+      
+      .nav-pill { display: none !important; }
+      
+      body.menu-open { overflow: hidden; }
+    }
+
     /* ─── Hero ────────────────────────────────────────────────────────── */
     .hero {
       min-height: 100vh;
@@ -305,6 +380,11 @@
       gap: 16px;
       flex-wrap: wrap;
       justify-content: center;
+    }
+
+    .hero-actions .btn {
+      width: 280px;
+      max-width: 100%;
     }
 
     /* ─── Buttons (6-State System) ────────────────────────────────────── */
@@ -440,6 +520,7 @@
         box-shadow var(--duration-base) var(--ease-out-expo);
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
 
     .showcase-demo > * {
@@ -471,6 +552,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      min-width: 0;
     }
 
     .control-group {
@@ -651,7 +733,8 @@
       font-size: 0.8rem;
       line-height: 1.7;
       color: var(--text-secondary);
-      white-space: pre;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
     .code-body .tag { color: #e06c75; }
@@ -853,6 +936,9 @@
         <li class="nav-item"><a href="https://www.npmjs.com/package/@harbzz/atmospherejs" target="_blank">npm</a></li>
         <li class="nav-item"><a href="https://github.com/harbz/atmosphere-js" target="_blank">GitHub</a></li>
       </ul>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Menu">
+        <span class="menu-toggle-icon"></span>
+      </button>
     </div>
   </nav>
 
@@ -1490,6 +1576,20 @@
       links.forEach(l => l.classList.remove('active'));
       pill.style.width = '0px';
     });
+
+    // ── Mobile Menu Toggle ──────────────────────────────────────────
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+      menuToggle.addEventListener('click', () => {
+        document.body.classList.toggle('menu-open');
+      });
+      // Close menu when clicking a link
+      document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+          document.body.classList.remove('menu-open');
+        });
+      });
+    }
 
     // ── Scroll animation (Intersection Observer) ────────────────────
     const observer = new IntersectionObserver((entries) => {
