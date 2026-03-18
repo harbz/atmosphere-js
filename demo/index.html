@@ -984,7 +984,7 @@
 
       <div class="showcase-grid">
         <div class="showcase-demo">
-          <atm-grain id="grain-demo" intensity="0.3" speed="medium" color="neutral" animated="true" blend="overlay">
+          <atm-grain id="grain-demo" intensity="0.50" speed="medium" color="neutral" animated="true" blend="overlay">
             <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80" alt="Mountain landscape with grain overlay" />
           </atm-grain>
         </div>
@@ -993,9 +993,9 @@
           <div class="control-group">
             <div class="control-label">
               <span>Intensity</span>
-              <span class="control-value" id="grain-intensity-val">0.3</span>
+              <span class="control-value" id="grain-intensity-val">0.50</span>
             </div>
-            <input type="range" min="0" max="100" value="30" id="grain-intensity" oninput="updateGrain()">
+            <input type="range" min="0" max="100" value="50" id="grain-intensity" oninput="updateGrain()">
           </div>
 
           <div class="control-group">
@@ -1022,7 +1022,7 @@
               <button class="code-copy-btn" onclick="copyCode(this, 'grain-code')">Copy</button>
             </div>
             <div class="code-body">
-              <pre id="grain-code"><span class="tag">&lt;atm-grain</span> <span class="attr">intensity</span>=<span class="val">"0.3"</span> <span class="attr">speed</span>=<span class="val">"medium"</span>
+              <pre id="grain-code"><span class="tag">&lt;atm-grain</span> <span class="attr">intensity</span>=<span class="val">"0.50"</span> <span class="attr">speed</span>=<span class="val">"medium"</span>
   <span class="attr">color</span>=<span class="val">"neutral"</span> <span class="attr">animated</span>=<span class="val">"true"</span><span class="tag">&gt;</span>
   <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"photo.jpg"</span> <span class="tag">/&gt;</span>
 <span class="tag">&lt;/atm-grain&gt;</span></pre>
@@ -1047,7 +1047,7 @@
 
       <div class="showcase-grid">
         <div class="showcase-demo">
-          <atm-vignette id="vignette-demo" strength="0.5" color="#000000" shape="oval">
+          <atm-vignette id="vignette-demo" strength="0.76" color="#000000" shape="oval">
             <img src="https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?w=800&q=80" alt="Portrait with vignette effect" />
           </atm-vignette>
         </div>
@@ -1056,9 +1056,9 @@
           <div class="control-group">
             <div class="control-label">
               <span>Strength</span>
-              <span class="control-value" id="vignette-strength-val">0.5</span>
+              <span class="control-value" id="vignette-strength-val">0.76</span>
             </div>
-            <input type="range" min="0" max="100" value="50" id="vignette-strength" oninput="updateVignette()">
+            <input type="range" min="0" max="100" value="76" id="vignette-strength" oninput="updateVignette()">
           </div>
 
           <div class="control-group">
@@ -1075,7 +1075,7 @@
               <button class="code-copy-btn" onclick="copyCode(this, 'vignette-code')">Copy</button>
             </div>
             <div class="code-body">
-              <pre id="vignette-code"><span class="tag">&lt;atm-vignette</span> <span class="attr">strength</span>=<span class="val">"0.5"</span>
+              <pre id="vignette-code"><span class="tag">&lt;atm-vignette</span> <span class="attr">strength</span>=<span class="val">"0.76"</span>
   <span class="attr">color</span>=<span class="val">"#000000"</span> <span class="attr">shape</span>=<span class="val">"oval"</span><span class="tag">&gt;</span>
   <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"photo.jpg"</span> <span class="tag">/&gt;</span>
 <span class="tag">&lt;/atm-vignette&gt;</span></pre>
@@ -1442,22 +1442,45 @@
       });
     }
 
+    // ── Code Snippet Synchronizer ───────────────────────────────────
+    function updateCodeSnippet(componentId, codeId) {
+      const el = document.getElementById(componentId);
+      const codeEl = document.getElementById(codeId);
+      if (!el || !codeEl) return;
+      
+      const tagName = el.tagName.toLowerCase();
+      const customAttrs = [];
+      for (let i = 0; i < el.attributes.length; i++) {
+        const attr = el.attributes[i];
+        if (!['id', 'class', 'style'].includes(attr.name)) {
+          customAttrs.push(`<span class="attr">${attr.name}</span>=<span class="val">"${attr.value}"</span>`);
+        }
+      }
+      const attrsHtml = customAttrs.length > 0 ? ' ' + customAttrs.join(' ') : '';
+      
+      const innerHtmlStr = `\n  <span class="tag">&lt;img</span> <span class="attr">src</span>=<span class="val">"photo.jpg"</span> <span class="tag">/&gt;</span>\n`;
+      codeEl.innerHTML = `<span class="tag">&lt;${tagName}</span>${attrsHtml}<span class="tag">&gt;</span>${innerHtmlStr}<span class="tag">&lt;/${tagName}&gt;</span>`;
+    }
+
     // ── Grain controls ──────────────────────────────────────────────
     function updateGrain() {
       const el = document.getElementById('grain-demo');
       const val = document.getElementById('grain-intensity').value / 100;
       document.getElementById('grain-intensity-val').textContent = val.toFixed(2);
       el.setAttribute('intensity', val);
+      updateCodeSnippet('grain-demo', 'grain-code');
     }
 
     function setGrainSpeed(speed) {
       setActive('grain-speed-group', speed);
       document.getElementById('grain-demo').setAttribute('speed', speed);
+      updateCodeSnippet('grain-demo', 'grain-code');
     }
 
     function setGrainColor(color) {
       setActive('grain-color-group', color);
       document.getElementById('grain-demo').setAttribute('color', color);
+      updateCodeSnippet('grain-demo', 'grain-code');
     }
 
     // ── Vignette controls ───────────────────────────────────────────
@@ -1466,11 +1489,13 @@
       const val = document.getElementById('vignette-strength').value / 100;
       document.getElementById('vignette-strength-val').textContent = val.toFixed(2);
       el.setAttribute('strength', val);
+      updateCodeSnippet('vignette-demo', 'vignette-code');
     }
 
     function setVignetteShape(shape) {
       setActive('vignette-shape-group', shape);
       document.getElementById('vignette-demo').setAttribute('shape', shape);
+      updateCodeSnippet('vignette-demo', 'vignette-code');
     }
 
     // ── Scanlines controls ──────────────────────────────────────────
@@ -1482,6 +1507,7 @@
       document.getElementById('scanlines-spacing-val').textContent = spVal + 'px';
       el.setAttribute('opacity', opVal);
       el.setAttribute('spacing', spVal);
+      updateCodeSnippet('scanlines-demo', 'scanlines-code');
     }
 
     // ── Light Leak controls ─────────────────────────────────────────
@@ -1490,16 +1516,19 @@
       const val = document.getElementById('lightleak-opacity').value / 100;
       document.getElementById('lightleak-opacity-val').textContent = val.toFixed(2);
       el.setAttribute('opacity', val);
+      updateCodeSnippet('lightleak-demo', 'lightleak-code');
     }
 
     function setLightLeakPos(pos) {
       setActive('lightleak-pos-group', pos);
       document.getElementById('lightleak-demo').setAttribute('position', pos);
+      updateCodeSnippet('lightleak-demo', 'lightleak-code');
     }
 
     function setLightLeakColor(color) {
       setActive('lightleak-color-group', color);
       document.getElementById('lightleak-demo').setAttribute('color', color);
+      updateCodeSnippet('lightleak-demo', 'lightleak-code');
     }
 
     // ── Paper controls ──────────────────────────────────────────────
@@ -1508,11 +1537,13 @@
       const val = document.getElementById('paper-opacity').value / 100;
       document.getElementById('paper-opacity-val').textContent = val.toFixed(2);
       el.setAttribute('opacity', val);
+      updateCodeSnippet('paper-demo', 'paper-code');
     }
 
     function setPaperTexture(tex) {
       setActive('paper-texture-group', tex);
       document.getElementById('paper-demo').setAttribute('texture', tex);
+      updateCodeSnippet('paper-demo', 'paper-code');
     }
 
     // ── Combine section ─────────────────────────────────────────────
